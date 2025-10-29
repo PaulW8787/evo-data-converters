@@ -49,7 +49,7 @@ class TestGetCollectionNameFromCollars:
 class TestExtractEpsgCode:
     """Tests for _extract_epsg_code helper function."""
 
-    def test_valid_epsg_code_extraction(self) -> None:
+    def test_valid_epsg_code_extraction_short_format(self) -> None:
         mock_cpt = Mock()
         mock_cpt.delivered_location.srs_name = "EPSG:28992"
 
@@ -57,7 +57,7 @@ class TestExtractEpsgCode:
 
         assert result == 28992
 
-    def test_different_epsg_format(self) -> None:
+    def test_valid_epsg_code_extraction_urn_format(self) -> None:
         mock_cpt = Mock()
         mock_cpt.delivered_location.srs_name = "urn:ogc:def:crs:EPSG::4326"
 
