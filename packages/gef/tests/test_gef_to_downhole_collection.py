@@ -65,6 +65,15 @@ class TestExtractEpsgCode:
 
         assert result == 4326
 
+    def test_epsg_extraction_epsg_404000_is_unspecified(self) -> None:
+        """Pygef returns EPSG 404000 if supplied an invalid/unrecognised XYID."""
+        mock_cpt = Mock()
+        mock_cpt.delivered_location.srs_name = "urn:ogc:def:crs:EPSG::404000"
+
+        result = _extract_epsg_code(mock_cpt, "TEST-001")
+
+        assert result == "unspecified"
+
     def test_missing_srs_name_attribute_raises_error(self) -> None:
         mock_cpt = Mock()
         mock_cpt.delivered_location = Mock(spec=[])  # No srs_name attribute
