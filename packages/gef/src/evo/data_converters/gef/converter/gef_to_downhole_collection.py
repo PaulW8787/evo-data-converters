@@ -43,7 +43,7 @@ def create_from_parsed_gef_cpts(parsed_cpt_files: dict[str, CPTData]) -> Downhol
     if not parsed_cpt_files:
         raise ValueError("No CPT files provided - parsed_cpt_files dictionary is empty")
 
-    epsg_code: int | None = None
+    epsg_code: int | str | None = None
     collar_rows: list[dict[str, typing.Any]] = []
     measurement_dfs: list[pl.DataFrame] = []
     nan_values_by_attribute: dict[str, list] = defaultdict(list)
@@ -129,7 +129,7 @@ def create_from_parsed_gef_cpts(parsed_cpt_files: dict[str, CPTData]) -> Downhol
     )
 
 
-def _extract_epsg_code(cpt_data: CPTData, hole_id: str) -> int:
+def _extract_epsg_code(cpt_data: CPTData, hole_id: str) -> int | str:
     """Extract EPSG code from CPTData object"""
 
     try:
@@ -144,6 +144,9 @@ def _extract_epsg_code(cpt_data: CPTData, hole_id: str) -> int:
         epsg_code = int(srs_name.split(":")[-1])
     except (ValueError, IndexError) as e:
         raise ValueError(f"CPT file '{hole_id}' has invalid EPSG code in SRS name: '{srs_name}'. Error: {e}")
+
+    if epsg_code == 404000:
+        epsg_code = "unspecified"
 
     return epsg_code
 

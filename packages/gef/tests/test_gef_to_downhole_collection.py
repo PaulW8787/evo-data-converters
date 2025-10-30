@@ -49,7 +49,7 @@ class TestGetCollectionNameFromCollars:
 class TestExtractEpsgCode:
     """Tests for _extract_epsg_code helper function."""
 
-    def test_valid_epsg_code_extraction(self) -> None:
+    def test_valid_epsg_code_extraction_short_format(self) -> None:
         mock_cpt = Mock()
         mock_cpt.delivered_location.srs_name = "EPSG:28992"
 
@@ -57,13 +57,22 @@ class TestExtractEpsgCode:
 
         assert result == 28992
 
-    def test_different_epsg_format(self) -> None:
+    def test_valid_epsg_code_extraction_urn_format(self) -> None:
         mock_cpt = Mock()
         mock_cpt.delivered_location.srs_name = "urn:ogc:def:crs:EPSG::4326"
 
         result = _extract_epsg_code(mock_cpt, "TEST-001")
 
         assert result == 4326
+
+    def test_epsg_extraction_epsg_404000_is_unspecified(self) -> None:
+        """Pygef returns EPSG 404000 if supplied an invalid/unrecognised XYID."""
+        mock_cpt = Mock()
+        mock_cpt.delivered_location.srs_name = "urn:ogc:def:crs:EPSG::404000"
+
+        result = _extract_epsg_code(mock_cpt, "TEST-001")
+
+        assert result == "unspecified"
 
     def test_missing_srs_name_attribute_raises_error(self) -> None:
         mock_cpt = Mock()
