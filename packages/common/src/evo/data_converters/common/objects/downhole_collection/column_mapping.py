@@ -21,7 +21,7 @@ class ColumnMapping:
     # The hole index should relate to the index of the hole_id in the collars table (1-based)
     HOLE_INDEX_COLUMNS: list[str] = field(default_factory=lambda: ["hole_index"])
 
-    DEPTH_COLUMNS: list[str] = field(default_factory=lambda: ["penetrationLength", "SCPT_DPTH"])
+    DEPTH_COLUMNS: list[str] = field(default_factory=list)
 
-    FROM_COLUMNS: list[str] = field(default_factory=lambda: ["SCPP_TOP", "GEOL_TOP"])
-    TO_COLUMNS: list[str] = field(default_factory=lambda: ["SCPP_BASE", "GEOL_BASE"])
+    FROM_COLUMNS: list[str] = field(default_factory=list)
+    TO_COLUMNS: list[str] = field(default_factory=list)

@@ -20,9 +20,9 @@ class TestColumnMapping:
         mapping = ColumnMapping()
 
         assert mapping.HOLE_INDEX_COLUMNS == ["hole_index"]
-        assert mapping.DEPTH_COLUMNS == ["penetrationLength", "SCPT_DPTH"]
-        assert mapping.FROM_COLUMNS == ["SCPP_TOP", "GEOL_TOP"]
-        assert mapping.TO_COLUMNS == ["SCPP_BASE", "GEOL_BASE"]
+        assert mapping.DEPTH_COLUMNS == []
+        assert mapping.FROM_COLUMNS == []
+        assert mapping.TO_COLUMNS == []
 
     def test_custom_initialization(self):
         """Test that custom column mappings can be provided"""
@@ -44,8 +44,8 @@ class TestColumnMapping:
 
         assert mapping.HOLE_INDEX_COLUMNS == ["hole_index"]
         assert mapping.DEPTH_COLUMNS == ["my_depth"]
-        assert mapping.FROM_COLUMNS == ["SCPP_TOP", "GEOL_TOP"]
-        assert mapping.TO_COLUMNS == ["SCPP_BASE", "GEOL_BASE"]
+        assert mapping.FROM_COLUMNS == []
+        assert mapping.TO_COLUMNS == []
 
     def test_multiple_instances_independent(self):
         """Test that multiple instances don't share list references"""

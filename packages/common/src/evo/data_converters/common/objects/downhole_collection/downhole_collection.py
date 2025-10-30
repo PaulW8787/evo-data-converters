@@ -13,7 +13,9 @@ import pandas as pd
 import sys
 import typing
 
+
 from ..base_properties import BaseSpatialDataProperties
+from .column_mapping import ColumnMapping
 from .hole_collars import HoleCollars
 from .tables import MeasurementTableFactory, MeasurementTableAdapter
 
@@ -38,6 +40,7 @@ class DownholeCollection(BaseSpatialDataProperties):
         collars: HoleCollars,
         name: str,
         measurements: list[MeasurementTableAdapter] | list[pd.DataFrame] | None = None,
+        column_mapping: ColumnMapping | None = None,
         nan_values_by_attribute: dict[str, list[typing.Any]] | None = None,
         uuid: str | None = None,
         coordinate_reference_system: int | str | None = None,
@@ -63,13 +66,15 @@ class DownholeCollection(BaseSpatialDataProperties):
         self.measurements: list[MeasurementTableAdapter] = []
         if measurements:
             for m in measurements:
-                self.add_measurement_table(m)
+                self.add_measurement_table(m, column_mapping)
         self.nan_values_by_attribute: dict[str, list[typing.Any]] = nan_values_by_attribute or {}
 
-    def add_measurement_table(self, input: pd.DataFrame | MeasurementTableAdapter) -> None:
+    def add_measurement_table(
+        self, input: pd.DataFrame | MeasurementTableAdapter, column_mapping: ColumnMapping | None = None
+    ) -> None:
         """Add a measurement table adapter"""
         if isinstance(input, pd.DataFrame):
-            adapter: MeasurementTableAdapter = MeasurementTableFactory.create(input)
+            adapter: MeasurementTableAdapter = MeasurementTableFactory.create(input, column_mapping or ColumnMapping())
         else:
             adapter = input
         self.measurements.append(adapter)

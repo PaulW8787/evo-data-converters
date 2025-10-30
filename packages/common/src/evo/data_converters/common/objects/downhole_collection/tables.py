@@ -137,11 +137,7 @@ class MeasurementTableFactory:
     """Factory to detect and create appropriate measurement table adapter"""
 
     @staticmethod
-    def create(df: pd.DataFrame, override_column_mapping: ColumnMapping | None = None) -> MeasurementTableAdapter:
-        column_mapping: ColumnMapping = (
-            override_column_mapping if override_column_mapping is not None else ColumnMapping()
-        )
-
+    def create(df: pd.DataFrame, column_mapping: ColumnMapping) -> MeasurementTableAdapter:
         df_columns_lower: set[str] = set(col.lower() for col in df.columns)
 
         # Check for interval measurement

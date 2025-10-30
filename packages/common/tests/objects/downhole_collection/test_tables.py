@@ -11,8 +11,8 @@
 
 import pytest
 import pandas as pd
-from evo.data_converters.common.objects.downhole_collection.column_mapping import ColumnMapping
 from evo.data_converters.common.objects.downhole_collection.tables import (
+    ColumnMapping,
     DistanceTable,
     IntervalTable,
     MeasurementTableFactory,
@@ -26,7 +26,7 @@ class TestDistanceTable:
         """Test basic initialization with valid distance data"""
         df = pd.DataFrame({"hole_index": [1, 1, 2], "penetrationLength": [0.5, 1.0, 1.5], "value": [10, 20, 30]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert table.df is df
         assert isinstance(table.mapping, ColumnMapping)
 
@@ -34,7 +34,7 @@ class TestDistanceTable:
         """Test that column matching is case-insensitive"""
         df = pd.DataFrame({"HOLE_INDEX": [1, 1, 2], "PenetrationLength": [0.5, 1.0, 1.5], "value": [10, 20, 30]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert table.get_hole_index_column() == "HOLE_INDEX"
         assert table.get_depth_column() == "PenetrationLength"
 
@@ -42,28 +42,28 @@ class TestDistanceTable:
         """Test getting the depth column name"""
         df = pd.DataFrame({"hole_index": [1], "SCPT_DPTH": [1.0], "value": [10]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["SCPT_DPTH"]))
         assert table.get_depth_column() == "SCPT_DPTH"
 
     def test_get_primary_column(self):
         """Test that primary column returns the depth column"""
         df = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "value": [10]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert table.get_primary_column() == "penetrationLength"
 
     def test_get_primary_columns(self):
         """Test that primary columns list contains only the depth column"""
         df = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "value": [10]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert table.get_primary_columns() == ["penetrationLength"]
 
     def test_get_depth_values(self):
         """Test getting depth values as a Series"""
         df = pd.DataFrame({"hole_index": [1, 1, 2], "penetrationLength": [0.5, 1.0, 1.5], "value": [10, 20, 30]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         depths = table.get_depth_values()
 
         assert isinstance(depths, pd.Series)
@@ -73,7 +73,7 @@ class TestDistanceTable:
         """Test getting non-primary attribute columns"""
         df = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "value": [10], "description": ["test"]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         attrs = table.get_attribute_columns()
 
         assert "value" in attrs
@@ -86,25 +86,25 @@ class TestDistanceTable:
         df = pd.DataFrame({"penetrationLength": [1.0], "value": [10]})
 
         with pytest.raises(ValueError, match="No hole index column found"):
-            DistanceTable(df, ColumnMapping())
+            DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
 
     def test_missing_depth_column_raises_error(self):
         """Test that missing depth column raises ValueError"""
         df = pd.DataFrame({"hole_index": [1], "value": [10]})
 
         with pytest.raises(ValueError, match="No depth column found"):
-            DistanceTable(df, ColumnMapping())
+            DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
 
     def test_alternative_depth_column_names(self):
         """Test that alternative depth column names are recognized"""
         # Test first alternative
         df1 = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "value": [10]})
-        table1 = DistanceTable(df1, ColumnMapping())
+        table1 = DistanceTable(df1, ColumnMapping(DEPTH_COLUMNS=["penetrationLength", "SCPT_DPTH"]))
         assert table1.get_depth_column() == "penetrationLength"
 
         # Test second alternative
         df2 = pd.DataFrame({"hole_index": [1], "SCPT_DPTH": [1.0], "value": [10]})
-        table2 = DistanceTable(df2, ColumnMapping())
+        table2 = DistanceTable(df2, ColumnMapping(DEPTH_COLUMNS=["penetrationLength", "SCPT_DPTH"]))
         assert table2.get_depth_column() == "SCPT_DPTH"
 
 
@@ -117,7 +117,7 @@ class TestIntervalTable:
             {"hole_index": [1, 1, 2], "SCPP_TOP": [0.0, 1.0, 0.0], "SCPP_BASE": [1.0, 2.0, 1.5], "value": [10, 20, 30]}
         )
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         assert table.df is df
         assert isinstance(table.mapping, ColumnMapping)
 
@@ -125,7 +125,7 @@ class TestIntervalTable:
         """Test case-insensitive column matching"""
         df = pd.DataFrame({"HOLE_INDEX": [1], "scpp_top": [0.0], "SCPP_base": [1.0], "value": [10]})
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         assert table.get_from_column() == "scpp_top"
         assert table.get_to_column() == "SCPP_base"
 
@@ -133,28 +133,28 @@ class TestIntervalTable:
         """Test getting the 'from' column name"""
         df = pd.DataFrame({"hole_index": [1], "GEOL_TOP": [0.0], "GEOL_BASE": [1.0], "value": [10]})
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["GEOL_TOP"], TO_COLUMNS=["GEOL_BASE"]))
         assert table.get_from_column() == "GEOL_TOP"
 
     def test_get_to_column(self):
         """Test getting the 'to' column name"""
         df = pd.DataFrame({"hole_index": [1], "SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10]})
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         assert table.get_to_column() == "SCPP_BASE"
 
     def test_get_primary_column(self):
         """Test that primary column returns the 'from' column"""
         df = pd.DataFrame({"hole_index": [1], "SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10]})
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         assert table.get_primary_column() == "SCPP_TOP"
 
     def test_get_primary_columns(self):
         """Test that primary columns list contains both interval columns"""
         df = pd.DataFrame({"hole_index": [1], "SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10]})
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         primary = table.get_primary_columns()
 
         assert len(primary) == 2
@@ -167,7 +167,7 @@ class TestIntervalTable:
             {"hole_index": [1, 1, 2], "SCPP_TOP": [0.0, 1.0, 0.0], "SCPP_BASE": [1.0, 2.0, 1.5], "value": [10, 20, 30]}
         )
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         intervals = table.get_intervals()
 
         assert isinstance(intervals, pd.DataFrame)
@@ -180,7 +180,7 @@ class TestIntervalTable:
             {"hole_index": [1], "SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10], "description": ["test"]}
         )
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         attrs = table.get_attribute_columns()
 
         assert "value" in attrs
@@ -194,28 +194,30 @@ class TestIntervalTable:
         df = pd.DataFrame({"SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10]})
 
         with pytest.raises(ValueError, match="No hole index column found"):
-            IntervalTable(df, ColumnMapping())
+            IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
 
     def test_missing_from_column_raises_error(self):
         """Test that missing 'from' column raises ValueError"""
         df = pd.DataFrame({"hole_index": [1], "SCPP_BASE": [1.0], "value": [10]})
 
         with pytest.raises(ValueError, match="Missing interval columns"):
-            IntervalTable(df, ColumnMapping())
+            IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
 
     def test_missing_to_column_raises_error(self):
         """Test that missing 'to' column raises ValueError"""
         df = pd.DataFrame({"hole_index": [1], "SCPP_TOP": [0.0], "value": [10]})
 
         with pytest.raises(ValueError, match="Missing interval columns"):
-            IntervalTable(df, ColumnMapping())
+            IntervalTable(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
 
     def test_alternative_interval_column_names(self):
         """Test that alternative interval column names are recognized"""
         # Test GEOL_ alternatives
         df = pd.DataFrame({"hole_index": [1], "GEOL_TOP": [0.0], "GEOL_BASE": [1.0], "value": [10]})
 
-        table = IntervalTable(df, ColumnMapping())
+        table = IntervalTable(
+            df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP", "GEOL_TOP"], TO_COLUMNS=["SCPP_BASE", "GEOL_BASE"])
+        )
         assert table.get_from_column() == "GEOL_TOP"
         assert table.get_to_column() == "GEOL_BASE"
 
@@ -227,14 +229,14 @@ class TestMeasurementTableFactory:
         """Test factory creates DistanceTable for depth data"""
         df = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "value": [10]})
 
-        table = MeasurementTableFactory.create(df)
+        table = MeasurementTableFactory.create(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert isinstance(table, DistanceTable)
 
     def test_create_interval_table(self):
         """Test factory creates IntervalTable for interval data"""
         df = pd.DataFrame({"hole_index": [1], "SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10]})
 
-        table = MeasurementTableFactory.create(df)
+        table = MeasurementTableFactory.create(df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
         assert isinstance(table, IntervalTable)
 
     def test_interval_takes_precedence(self):
@@ -243,14 +245,16 @@ class TestMeasurementTableFactory:
             {"hole_index": [1], "penetrationLength": [1.0], "SCPP_TOP": [0.0], "SCPP_BASE": [1.0], "value": [10]}
         )
 
-        table = MeasurementTableFactory.create(df)
+        table = MeasurementTableFactory.create(
+            df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"], FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"])
+        )
         assert isinstance(table, IntervalTable)
 
     def test_case_insensitive_detection(self):
         """Test factory detection is case-insensitive"""
         df = pd.DataFrame({"HOLE_INDEX": [1], "PenetrationLength": [1.0], "value": [10]})
 
-        table = MeasurementTableFactory.create(df)
+        table = MeasurementTableFactory.create(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert isinstance(table, DistanceTable)
 
     def test_custom_column_mapping(self):
@@ -268,21 +272,21 @@ class TestMeasurementTableFactory:
         df = pd.DataFrame({"hole_index": [1], "value": [10]})
 
         with pytest.raises(ValueError, match="Cannot determine measurement type"):
-            MeasurementTableFactory.create(df)
+            MeasurementTableFactory.create(df, ColumnMapping())
 
     def test_missing_hole_index_raises_error(self):
         """Test that missing hole index column raises ValueError"""
         df = pd.DataFrame({"penetrationLength": [1.0], "value": [10]})
 
         with pytest.raises(ValueError, match="No hole index column found"):
-            MeasurementTableFactory.create(df)
+            MeasurementTableFactory.create(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
 
     def test_recognizes_all_depth_alternatives(self):
         """Test that all alternative depth column names are recognized"""
         for depth_col in ["penetrationLength", "SCPT_DPTH"]:
             df = pd.DataFrame({"hole_index": [1], depth_col: [1.0], "value": [10]})
 
-            table = MeasurementTableFactory.create(df)
+            table = MeasurementTableFactory.create(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength", "SCPT_DPTH"]))
             assert isinstance(table, DistanceTable)
 
     def test_recognizes_all_interval_alternatives(self):
@@ -292,7 +296,9 @@ class TestMeasurementTableFactory:
         for from_col, to_col in interval_pairs:
             df = pd.DataFrame({"hole_index": [1], from_col: [0.0], to_col: [1.0], "value": [10]})
 
-            table = MeasurementTableFactory.create(df)
+            table = MeasurementTableFactory.create(
+                df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP", "GEOL_TOP"], TO_COLUMNS=["SCPP_BASE", "GEOL_BASE"])
+            )
             assert isinstance(table, IntervalTable)
 
 
@@ -303,14 +309,14 @@ class TestMeasurementTableAdapter:
         """Test getting hole index column through concrete implementation"""
         df = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "value": [10]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert table.get_hole_index_column() == "hole_index"
 
     def test_find_column_returns_first_match(self):
         """Test that _find_column returns first matching column"""
         df = pd.DataFrame({"hole_index": [1], "penetrationLength": [1.0], "SCPT_DPTH": [1.5], "value": [10]})
 
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength", "SCPT_DPTH"]))
         # Should return penetrationLength as it's first in the mapping list
         assert table.get_depth_column() == "penetrationLength"
 
@@ -319,5 +325,5 @@ class TestMeasurementTableAdapter:
         df = pd.DataFrame({"hole_index": [], "penetrationLength": [], "value": []})
 
         # Should not raise an error
-        table = DistanceTable(df, ColumnMapping())
+        table = DistanceTable(df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
         assert len(table.df) == 0

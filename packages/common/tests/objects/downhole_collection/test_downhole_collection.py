@@ -12,6 +12,7 @@
 import pytest
 import pandas as pd
 from evo.data_converters.common.objects.downhole_collection import (
+    ColumnMapping,
     DownholeCollection,
     DistanceTable,
     IntervalTable,
@@ -107,6 +108,7 @@ class TestDownholeCollectionInitialization:
             collars=valid_collars,
             name="Test Collection",
             measurements=[distance_measurements_df],
+            column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]),
         )
         assert len(dc.measurements) == 1
         assert isinstance(dc.measurements[0], MeasurementTableAdapter)
@@ -119,13 +121,17 @@ class TestDownholeCollectionInitialization:
             collars=valid_collars,
             name="Test Collection",
             measurements=[distance_measurements_df, interval_measurements_df],
+            column_mapping=ColumnMapping(
+                DEPTH_COLUMNS=["penetrationLength"], FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]
+            ),
         )
         assert len(dc.measurements) == 2
         assert all(isinstance(m, MeasurementTableAdapter) for m in dc.measurements)
 
     def test_init_with_measurement_adapter(self, valid_collars, distance_measurements_df):
         """Test initialization with a MeasurementTableAdapter."""
-        adapter = MeasurementTableFactory.create(distance_measurements_df)
+        col_mapping = ColumnMapping(DEPTH_COLUMNS=["penetrationLength"])
+        adapter = MeasurementTableFactory.create(distance_measurements_df, col_mapping)
         dc = DownholeCollection(
             collars=valid_collars,
             name="Test Collection",
@@ -150,6 +156,7 @@ class TestDownholeCollectionInitialization:
             collars=valid_collars,
             name="Test Collection",
             measurements=[distance_measurements_df],
+            column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]),
             nan_values_by_attribute={"value": [-999.0]},
             uuid="test-uuid-123",
             coordinate_reference_system=32633,
@@ -171,15 +178,16 @@ class TestAddMeasurementTable:
         """Test adding a measurement table from a DataFrame."""
         dc = DownholeCollection(collars=valid_collars, name="Test")
 
-        dc.add_measurement_table(distance_measurements_df)
+        dc.add_measurement_table(distance_measurements_df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
 
         assert len(dc.measurements) == 1
         assert isinstance(dc.measurements[0], MeasurementTableAdapter)
 
     def test_add_measurement_table_from_adapter(self, valid_collars, distance_measurements_df):
         """Test adding a measurement table from an adapter."""
+        col_mapping = ColumnMapping(DEPTH_COLUMNS=["penetrationLength"])
         dc = DownholeCollection(collars=valid_collars, name="Test")
-        adapter = MeasurementTableFactory.create(distance_measurements_df)
+        adapter = MeasurementTableFactory.create(distance_measurements_df, col_mapping)
 
         dc.add_measurement_table(adapter)
 
@@ -190,8 +198,10 @@ class TestAddMeasurementTable:
         """Test adding multiple measurement tables."""
         dc = DownholeCollection(collars=valid_collars, name="Test")
 
-        dc.add_measurement_table(distance_measurements_df)
-        dc.add_measurement_table(interval_measurements_df)
+        dc.add_measurement_table(distance_measurements_df, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
+        dc.add_measurement_table(
+            interval_measurements_df, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"])
+        )
 
         assert len(dc.measurements) == 2
 
@@ -203,9 +213,9 @@ class TestAddMeasurementTable:
         df2 = pd.DataFrame({"hole_index": [1], "SCPP_TOP": [0.0], "SCPP_BASE": [10.0], "attr2": [2.0]})
         df3 = pd.DataFrame({"hole_index": [1], "penetrationLength": [20.0], "attr3": [3.0]})
 
-        dc.add_measurement_table(df1)
-        dc.add_measurement_table(df2)
-        dc.add_measurement_table(df3)
+        dc.add_measurement_table(df1, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
+        dc.add_measurement_table(df2, ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]))
+        dc.add_measurement_table(df3, ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]))
 
         assert len(dc.measurements) == 3
         # Verify order by checking attribute columns
@@ -221,6 +231,7 @@ class TestGetMeasurementTables:
             collars=valid_collars,
             name="Test",
             measurements=[distance_measurements_df],
+            column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]),
         )
 
         tables = dc.get_measurement_tables()
@@ -234,6 +245,7 @@ class TestGetMeasurementTables:
             collars=valid_collars,
             name="Test",
             measurements=[distance_measurements_df],
+            column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]),
         )
 
         tables1 = dc.get_measurement_tables()
@@ -250,6 +262,9 @@ class TestGetMeasurementTables:
             collars=valid_collars,
             name="Test",
             measurements=[distance_measurements_df, interval_measurements_df],
+            column_mapping=ColumnMapping(
+                DEPTH_COLUMNS=["penetrationLength"], FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]
+            ),
         )
 
         distance_tables = dc.get_measurement_tables(filter=[DistanceTable])
@@ -265,6 +280,9 @@ class TestGetMeasurementTables:
             collars=valid_collars,
             name="Test",
             measurements=[distance_measurements_df, interval_measurements_df],
+            column_mapping=ColumnMapping(
+                DEPTH_COLUMNS=["penetrationLength"], FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]
+            ),
         )
 
         interval_tables = dc.get_measurement_tables(filter=[IntervalTable])
@@ -280,6 +298,9 @@ class TestGetMeasurementTables:
             collars=valid_collars,
             name="Test",
             measurements=[distance_measurements_df, interval_measurements_df],
+            column_mapping=ColumnMapping(
+                DEPTH_COLUMNS=["penetrationLength"], FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"]
+            ),
         )
 
         tables = dc.get_measurement_tables(filter=[DistanceTable, IntervalTable])
@@ -292,6 +313,7 @@ class TestGetMeasurementTables:
             collars=valid_collars,
             name="Test",
             measurements=[distance_measurements_df],  # Only distance table
+            column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]),
         )
 
         interval_tables = dc.get_measurement_tables(filter=[IntervalTable])
@@ -384,7 +406,9 @@ class TestIntegration:
         )
 
         # Add measurement table
-        dc.add_measurement_table(distance_measurements_df)
+        dc.add_measurement_table(
+            distance_measurements_df, column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"])
+        )
 
         # Verify measurements
         tables = dc.get_measurement_tables(filter=[DistanceTable])
@@ -404,7 +428,9 @@ class TestIntegration:
         )
 
         # Add measurement table
-        dc.add_measurement_table(interval_measurements_df)
+        dc.add_measurement_table(
+            interval_measurements_df, column_mapping=ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"])
+        )
 
         # Verify measurements
         tables = dc.get_measurement_tables(filter=[IntervalTable])
@@ -423,10 +449,13 @@ class TestIntegration:
             measurements=[distance_measurements_df],
             coordinate_reference_system=32633,
             nan_values_by_attribute={"value": [-999.0]},
+            column_mapping=ColumnMapping(DEPTH_COLUMNS=["penetrationLength"]),
         )
 
         # Add another measurement
-        dc.add_measurement_table(interval_measurements_df)
+        dc.add_measurement_table(
+            interval_measurements_df, column_mapping=ColumnMapping(FROM_COLUMNS=["SCPP_TOP"], TO_COLUMNS=["SCPP_BASE"])
+        )
 
         # Verify all measurements
         all_tables = dc.get_measurement_tables()

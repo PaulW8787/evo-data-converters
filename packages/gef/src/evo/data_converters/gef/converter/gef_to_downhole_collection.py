@@ -10,6 +10,7 @@
 #  limitations under the License.
 
 from evo.data_converters.common.objects.downhole_collection import (
+    ColumnMapping,
     DownholeCollection,
     HoleCollars,
     MeasurementTableFactory,
@@ -115,7 +116,8 @@ def create_from_parsed_gef_cpts(parsed_cpt_files: dict[str, CPTData]) -> Downhol
 
     collection_name = get_collection_name_from_collars(collar_rows)
 
-    distance_measurements = MeasurementTableFactory.create(df=measurements)
+    column_mapping = ColumnMapping(DEPTH_COLUMNS=["penetrationLength"])
+    distance_measurements = MeasurementTableFactory.create(df=measurements, column_mapping=column_mapping)
     collars = HoleCollars(df=collars_df)
 
     return DownholeCollection(
