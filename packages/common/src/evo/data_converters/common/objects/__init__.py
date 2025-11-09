@@ -9,18 +9,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .blockmodel_client import BlockSyncClient
-from .grid_data import BaseGridData, RegularGridData, TensorGridData
-from .evo_client import EvoObjectMetadata, EvoWorkspaceMetadata, create_evo_object_service_and_data_client
-from .publish import publish_geoscience_objects
+from .downhole_collection import DownholeCollection
+from .downhole_collection_to_geoscience_object import DownholeCollectionToGeoscienceObject
 
 __all__ = [
-    "create_evo_object_service_and_data_client",
-    "EvoWorkspaceMetadata",
-    "BlockSyncClient",
-    "EvoObjectMetadata",
-    "publish_geoscience_objects",
-    "BaseGridData",
-    "RegularGridData",
-    "TensorGridData",
+    "DownholeCollection",
+    "DownholeCollectionToGeoscienceObject",
 ]

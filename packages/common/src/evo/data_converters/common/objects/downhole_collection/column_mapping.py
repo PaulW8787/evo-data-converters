@@ -9,18 +9,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .blockmodel_client import BlockSyncClient
-from .grid_data import BaseGridData, RegularGridData, TensorGridData
-from .evo_client import EvoObjectMetadata, EvoWorkspaceMetadata, create_evo_object_service_and_data_client
-from .publish import publish_geoscience_objects
+from dataclasses import dataclass, field
 
-__all__ = [
-    "create_evo_object_service_and_data_client",
-    "EvoWorkspaceMetadata",
-    "BlockSyncClient",
-    "EvoObjectMetadata",
-    "publish_geoscience_objects",
-    "BaseGridData",
-    "RegularGridData",
-    "TensorGridData",
-]
+
+@dataclass
+class ColumnMapping:
+    """
+    Provide a way to map dataframe configurations to a set of collection types
+    """
+
+    # The hole index should relate to the index of the hole_id in the collars table (1-based)
+    HOLE_INDEX_COLUMNS: list[str] = field(default_factory=lambda: ["hole_index"])
+
+    DEPTH_COLUMNS: list[str] = field(default_factory=list)
+
+    FROM_COLUMNS: list[str] = field(default_factory=list)
+    TO_COLUMNS: list[str] = field(default_factory=list)
