@@ -246,9 +246,12 @@ class DownholeCollectionBuilder:
 
         :param cpt_data: CPT data object
         """
-        for attribute_name, value in cpt_data.column_void_mapping.items():
-            if value not in self.nan_values_by_attribute[attribute_name]:
-                self.nan_values_by_attribute[attribute_name].append(value)
+        try:
+            for attribute_name, value in cpt_data.column_void_mapping.items():
+                if value not in self.nan_values_by_attribute[attribute_name]:
+                    self.nan_values_by_attribute[attribute_name].append(value)
+        except AttributeError:
+            return
 
     def _apply_nan_values_to_measurements(self, df: pd.DataFrame) -> pd.DataFrame:
         """Replace sentinel values with np.nan in measurement dataframe.
