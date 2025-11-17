@@ -38,6 +38,7 @@ class DownholeCollectionBuilder:
         "delivered_location",
         "delivered_vertical_position_datum",
         "final_depth",
+        "raw_headers",
     ]
 
     # Data types we expect for required hole collar information
@@ -205,6 +206,32 @@ class DownholeCollectionBuilder:
         }
         return filtered_hash
 
+    def _get_raw_header_info(self, cpt_data: CPTData) -> dict[str, typing.Any]:
+        """Extract the raw header info we are interested in from CPTData
+        The raw headers are 'flattened' into a single dictionary with the format:
+
+        {"measurementtext_1": "value", "measurementtext_2": "value", ...}
+
+        Where 'value' is a comma separated string of the values in the raw header, and
+        the raw header name (eg 'MEASUREMENTTEXT') is converted to lowercase and suffixed
+        with the id of the raw header (eg '1').
+
+        :param cpt_data: CPT data object
+
+        :return: Dictionary of raw header information
+        """
+        raw_headers_to_include = ["MEASUREMENTTEXT", "MEASUREMENTVAR"]
+
+        raw_header_info = {}
+        for raw_header_name in raw_headers_to_include:
+            if raw_header_name in cpt_data.raw_headers:
+                items = cpt_data.raw_headers[raw_header_name]
+                key = raw_header_name.lower()
+                raw_header_content = {f"{key}_{id_}": ", ".join(str(v) for v in values) for id_, *values in items}
+                raw_header_info.update(raw_header_content)
+
+        return raw_header_info
+
     def _create_collar_row(self, hole_index: int, hole_id: str, cpt_data: CPTData) -> dict[str, typing.Any]:
         """Create a collar data row for a single hole.
 
@@ -225,7 +252,8 @@ class DownholeCollectionBuilder:
             "final_depth": final_depth,
         }
         collar_attributes = self._get_collar_attributes(cpt_data)
-        return collar_data | collar_attributes
+        raw_header_info = self._get_raw_header_info(cpt_data)
+        return collar_data | collar_attributes | raw_header_info
 
     def _prepare_measurements(self, hole_index: int, cpt_data: CPTData) -> pl.DataFrame:
         """Prepare measurements DataFrame with hole_index as first column.
