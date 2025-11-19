@@ -206,7 +206,12 @@ class AttributeFactory:
         # Add nan_description if the attribute supports it
         if config.nan_class is not None:
             nan_values_list = list(series.attrs.get("nan_values", []))
-            attribute_kwargs["nan_description"] = config.nan_class(values=nan_values_list)
+            nan_values = (
+                [int(v) for v in nan_values_list]
+                if config.data_type in {DataType.INTEGER, DataType.DATETIME}
+                else nan_values_list
+            )
+            attribute_kwargs["nan_description"] = config.nan_class(values=nan_values)
 
         # Create and return the evo attribute
         return config.attribute_class(**attribute_kwargs)
