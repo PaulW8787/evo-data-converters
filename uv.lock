@@ -868,7 +868,7 @@ dev = [
 
 [[package]]
 name = "evo-data-converters-duf"
-version = "0.1.4"
+version = "0.1.9"
 source = { editable = "packages/duf" }
 dependencies = [
     { name = "evo-data-converters-common" },
@@ -877,6 +877,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pandas" },
     { name = "pytest" },
     { name = "requests-mock" },
 ]
@@ -889,6 +890,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "pandas" },
     { name = "pytest" },
     { name = "requests-mock" },
 ]

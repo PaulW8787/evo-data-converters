@@ -10,7 +10,10 @@
 #  limitations under the License.
 
 import os
+from os import path
 
+import numpy
+import pyarrow.parquet as pq
 import pytest
 
 from evo.data_converters.common import (
@@ -28,10 +31,38 @@ def evo_metadata(tmp_path_factory):
     )
 
 
+class TestDataClient:
+    def __init__(self, data_client):
+        self.data_client = data_client
+
+    def __getattr__(self, name):
+        return getattr(self.data_client, name)
+
+    def load_table(self, table):
+        chunks_parquet_file = path.join(str(self.data_client.cache_location), table.data)
+        return pq.read_table(chunks_parquet_file)
+
+    def load_columns(self, table) -> list:
+        table_pd = self.load_table(table).to_pandas()
+        return [table_pd[col].to_numpy() for col in table_pd.columns]
+
+    def load_category(self, attr_go):
+        lookup_df = self.load_table(attr_go.table).to_pandas().set_index("key")
+        values_df = self.load_table(attr_go.values).to_pandas()
+
+        lookup_values_col_name = lookup_df.columns[0]
+        value_keys = values_df[values_df.columns[0]]
+
+        def do_lookup(k):
+            return lookup_df.loc[k, lookup_values_col_name]
+
+        return numpy.vectorize(do_lookup)(value_keys)
+
+
 @pytest.fixture(scope="session")
-def data_client(evo_metadata):
+def data_client(evo_metadata) -> TestDataClient:
     _, data_client = create_evo_object_service_and_data_client(evo_metadata)
-    return data_client
+    return TestDataClient(data_client)
 
 
 @pytest.fixture(autouse=True, scope="function")

@@ -69,3 +69,71 @@ def pit_mesh_attrs_path():
 def pit_mesh_attrs(pit_mesh_attrs_path):
     with DUFCollectorContext(pit_mesh_attrs_path) as context:
         yield context.collector
+
+
+@pytest.fixture(scope="session")
+def polyline_empty_category_and_nan_attrs_path():
+    return str((Path(__file__).parent.parent / "data" / "polyline_empty_category_and_nan_attr.duf").resolve())
+
+
+@pytest.fixture(scope="session")
+def polyline_empty_category_and_nan_attrs(polyline_empty_category_and_nan_attrs_path):
+    with DUFCollectorContext(polyline_empty_category_and_nan_attrs_path) as context:
+        yield context.collector
+
+
+@pytest.fixture(scope="session")
+def missing_attr_and_missing_xprops_path():
+    return str((Path(__file__).parent.parent / "data" / "missing_attr_and_missing_xprops.duf").resolve())
+
+
+@pytest.fixture(scope="session")
+def missing_attr_and_missing_xprops(missing_attr_and_missing_xprops_path):
+    with DUFCollectorContext(missing_attr_and_missing_xprops_path) as context:
+        yield context.collector
+
+
+@pytest.fixture(scope="session")
+def layer_with_2polylines_2meshes_2points_2texts_1face_path():
+    return str(
+        (Path(__file__).parent.parent / "data" / "layer_with_2polylines_2meshes_2points_2texts_1face.duf").resolve()
+    )
+
+
+@pytest.fixture(scope="session")
+def layer_with_2polylines_2meshes_2points_2texts_1face(layer_with_2polylines_2meshes_2points_2texts_1face_path):
+    with DUFCollectorContext(layer_with_2polylines_2meshes_2points_2texts_1face_path) as context:
+        yield context.collector
+
+
+@pytest.fixture(scope="session")
+def id_attribute_path():
+    return str((Path(__file__).parent.parent / "data" / "id_attribute.duf").resolve())
+
+
+@pytest.fixture(scope="session")
+def id_attribute(id_attribute_path):
+    with DUFCollectorContext(id_attribute_path) as context:
+        yield context.collector
+
+
+@pytest.fixture(scope="session")
+def missing_ints_path():
+    return str((Path(__file__).parent.parent / "data" / "missing_ints.duf").resolve())
+
+
+@pytest.fixture(scope="session")
+def missing_ints(missing_ints_path):
+    with DUFCollectorContext(missing_ints_path) as context:
+        yield context.collector
+
+
+@pytest.fixture(scope="session")
+def mismatching_type_desc_and_values_path():
+    return str((Path(__file__).parent.parent / "data" / "mismatching_type_desc_and_values.duf").resolve())
+
+
+@pytest.fixture(scope="session")
+def mismatching_type_desc_and_values(mismatching_type_desc_and_values_path):
+    with DUFCollectorContext(mismatching_type_desc_and_values_path) as context:
+        yield context.collector

@@ -11,7 +11,6 @@
 
 import numpy as np
 from evo_schemas.components import (
-    Crs_V1_0_1_EpsgCode,
     Segments_V1_2_0,
     Segments_V1_2_0_Indices,
     Segments_V1_2_0_Vertices,
@@ -21,6 +20,8 @@ from evo_schemas.objects import LineSegments_V2_1_0, LineSegments_V2_1_0_Parts
 import evo.logging
 from evo.objects.utils.data import ObjectDataClient
 
+from evo.data_converters.common import crs_from_epsg_code
+from evo.data_converters.duf.common.consts import EvoSchema
 import evo.data_converters.duf.common.deswik_types as dw
 from .utils import (
     get_name,
@@ -44,7 +45,7 @@ def _create_line_segments_obj(name, vertices_array, indices_array, parts, epsg_c
         name=name,
         uuid=None,
         bounding_box=bounding_box_go,
-        coordinate_reference_system=Crs_V1_0_1_EpsgCode(epsg_code=epsg_code),
+        coordinate_reference_system=crs_from_epsg_code(epsg_code),
         segments=Segments_V1_2_0(vertices=vertices_go, indices=indices_go),
         parts=parts_go,
     )
@@ -70,16 +71,21 @@ def combine_duf_polylines(
         logger.warning("No polylines to combine.")
         return None
 
-    name = get_name(polylines[0].Layer)
-    logger.debug(f'Combining polylines from layer: "{name}" to LineSegments_V2_1_0.')
+    layer = get_name(polylines[0].Layer)
+    name = f"{layer} - polylines"
+    logger.debug(f'Combining polylines from layer: "{layer}" to LineSegments_V2_1_0.')
 
     indices_arrays = []
-    for polyline in polylines:
+    for i, polyline in enumerate(polylines):
+        if i % 1000 == 0:
+            logger.info(f"Processed {i} polylines")
         pl_num_vertices = polyline.VertexList.Count
         pl_indices_array = _polyline_indices_array(pl_num_vertices)
         indices_arrays.append(pl_indices_array)
 
-    vertices_array, indices_array, parts = obj_list_and_indices_to_arrays(polylines, indices_arrays)
+    vertices_array, indices_array, parts = obj_list_and_indices_to_arrays(
+        polylines, indices_arrays, EvoSchema.line_segments
+    )
 
     return _create_line_segments_obj(name, vertices_array, indices_array, parts, epsg_code, data_client)
 
@@ -96,6 +102,8 @@ def convert_duf_polyline(
 
     indices_array = _polyline_indices_array(num_vertices)
 
-    vertices_array, indices_array, parts = obj_list_and_indices_to_arrays([polyline], [indices_array])
+    vertices_array, indices_array, parts = obj_list_and_indices_to_arrays(
+        [polyline], [indices_array], EvoSchema.line_segments
+    )
 
     return _create_line_segments_obj(name, vertices_array, indices_array, parts, epsg_code, data_client)
