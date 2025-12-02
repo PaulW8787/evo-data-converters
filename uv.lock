@@ -858,8 +858,10 @@ source = { editable = "packages/gef" }
 dependencies = [
     { name = "evo-data-converters-common" },
     { name = "pandas" },
+    { name = "pint-pandas" },
     { name = "pyarrow" },
-    { name = "pygef", extra = ["plot"] },
+    { name = "pygef", version = "0.13.0", source = { registry = "https://pypi.org/simple" }, extra = ["plot"], marker = "python_full_version < '3.11'" },
+    { name = "pygef", version = "0.14.0", source = { registry = "https://pypi.org/simple" }, extra = ["plot"], marker = "python_full_version >= '3.11'" },
 ]
 
 [package.dev-dependencies]
@@ -872,6 +874,7 @@ dev = [
 requires-dist = [
     { name = "evo-data-converters-common", editable = "packages/common" },
     { name = "pandas" },
+    { name = "pint-pandas" },
     { name = "pyarrow", specifier = ">=17.0.0" },
     { name = "pygef", extras = ["plot"] },
 ]
@@ -1090,6 +1093,30 @@ wheels = [
 ]
 
 [[package]]
+name = "flexcache"
+version = "0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/55/b0/8a21e330561c65653d010ef112bf38f60890051d244ede197ddaa08e50c1/flexcache-0.3.tar.gz", hash = "sha256:18743bd5a0621bfe2cf8d519e4c3bfdf57a269c15d1ced3fb4b64e0ff4600656", size = 15816, upload-time = "2024-03-09T03:21:07.555Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/cd/c883e1a7c447479d6e13985565080e3fea88ab5a107c21684c813dba1875/flexcache-0.3-py3-none-any.whl", hash = "sha256:d43c9fea82336af6e0115e308d9d33a185390b8346a017564611f1466dcd2e32", size = 13263, upload-time = "2024-03-09T03:21:05.635Z" },
+]
+
+[[package]]
+name = "flexparser"
+version = "0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/82/99/b4de7e39e8eaf8207ba1a8fa2241dd98b2ba72ae6e16960d8351736d8702/flexparser-0.4.tar.gz", hash = "sha256:266d98905595be2ccc5da964fe0a2c3526fbbffdc45b65b3146d75db992ef6b2", size = 31799, upload-time = "2024-11-07T02:00:56.249Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/5e/3be305568fe5f34448807976dc82fc151d76c3e0e03958f34770286278c1/flexparser-0.4-py3-none-any.whl", hash = "sha256:3738b456192dcb3e15620f324c447721023c0293f6af9955b481e91d00179846", size = 27625, upload-time = "2024-11-07T02:00:54.523Z" },
+]
+
+[[package]]
 name = "fonttools"
 version = "4.59.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1237,11 +1264,30 @@ wheels = [
 name = "gef-file-to-map"
 version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.11'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/1b/0a/d76c38bac192e8d8c6db47969ac2431630575158b89f0d967701f8a524dc/gef_file_to_map-0.2.1.tar.gz", hash = "sha256:fd25f754c75704fa43dd33941f4234ccde523d4b3a8345fffc45462ae0d6aef2", size = 57777, upload-time = "2025-07-22T03:20:36.818Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/ef/7046b7fd15487262839553c9de25c27c6d2968b737025ba1e63236f5890c/gef_file_to_map-0.2.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:a8fadbe8834e98a0a70079a8b53e62ad6e68589e6df45b1681ec2c9dff242a47", size = 172129, upload-time = "2025-07-22T03:20:37.765Z" },
     { url = "https://files.pythonhosted.org/packages/ff/52/3f158cc907a000f7f8d670eceb0eaac82c1618776a104e5ea606346965ba/gef_file_to_map-0.2.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:33e37f3120e2fc5dbbd91ac3a8c4efcd6213ecc22617cd7c1361d4122cd558ac", size = 194958, upload-time = "2025-07-22T03:20:35.512Z" },
     { url = "https://files.pythonhosted.org/packages/57/ba/6e06bc736d44cd32b3bb236bc3af5fdce3a50e5d3bc0099bd629d75199ca/gef_file_to_map-0.2.1-cp37-abi3-win_amd64.whl", hash = "sha256:e74726c6b649389e1f0abc1b777854fd33ba3cd8dc5aa096fb3b9aa75aecc8b0", size = 99759, upload-time = "2025-07-22T03:20:39.096Z" },
+]
+
+[[package]]
+name = "gef-file-to-map"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12' and python_full_version < '3.14'",
+    "python_full_version == '3.11.*'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cd/8e/209deeac66544a0dcad6c70e4d026e8f467166f4f451676e975ab7d493e4/gef_file_to_map-1.0.0.tar.gz", hash = "sha256:0fbd10bb1b97210417267f8a686d91c1766406bac7ec5cd757412db4cbaca3fc", size = 57552, upload-time = "2025-10-31T06:17:53.444Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8c/60/e1e740d76f445333d7c8a664acf6711bbe155f3479e4175687eff13a115c/gef_file_to_map-1.0.0-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:4919eb1fc68ab2506280194a64292d1782d28ec9f9d5502e76a54f25043bb1e4", size = 172683, upload-time = "2025-10-31T06:17:54.397Z" },
+    { url = "https://files.pythonhosted.org/packages/57/c4/0d61b1b456d41dc9f5b94c63129f472ff364fef0c5c0ee84eb28b0430cbf/gef_file_to_map-1.0.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f3a0e537172bc339dcfc2b83b5643cbc2d9b35e1f1cdc709350c7476c58d4e14", size = 195666, upload-time = "2025-10-31T06:17:52.485Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/c4/02eb4ce8a35192ede0a7822d06c6bafc9605fd85b8b219b6a1eb31206f01/gef_file_to_map-1.0.0-cp37-abi3-win_amd64.whl", hash = "sha256:4e0a1facc915ceafb05af7a35ce81ad52b35523651d03c23f950ce710557fcc2", size = 102190, upload-time = "2025-10-31T06:17:55.567Z" },
 ]
 
 [[package]]
@@ -2647,6 +2693,58 @@ wheels = [
 ]
 
 [[package]]
+name = "pint"
+version = "0.24.4"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.11'",
+]
+dependencies = [
+    { name = "flexcache", marker = "python_full_version < '3.11'" },
+    { name = "flexparser", marker = "python_full_version < '3.11'" },
+    { name = "platformdirs", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/20/bb/52b15ddf7b7706ed591134a895dbf6e41c8348171fb635e655e0a4bbb0ea/pint-0.24.4.tar.gz", hash = "sha256:35275439b574837a6cd3020a5a4a73645eb125ce4152a73a2f126bf164b91b80", size = 342225, upload-time = "2024-11-07T16:29:46.061Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/16/bd2f5904557265882108dc2e04f18abc05ab0c2b7082ae9430091daf1d5c/Pint-0.24.4-py3-none-any.whl", hash = "sha256:aa54926c8772159fcf65f82cc0d34de6768c151b32ad1deb0331291c38fe7659", size = 302029, upload-time = "2024-11-07T16:29:43.976Z" },
+]
+
+[[package]]
+name = "pint"
+version = "0.25.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12' and python_full_version < '3.14'",
+    "python_full_version == '3.11.*'",
+]
+dependencies = [
+    { name = "flexcache", marker = "python_full_version >= '3.11'" },
+    { name = "flexparser", marker = "python_full_version >= '3.11'" },
+    { name = "platformdirs", marker = "python_full_version >= '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5f/74/bc3f671997158aef171194c3c4041e549946f4784b8690baa0626a0a164b/pint-0.25.2.tar.gz", hash = "sha256:85a45d1da8fe9c9f7477fed8aef59ad2b939af3d6611507e1a9cbdacdcd3450a", size = 254467, upload-time = "2025-11-06T22:08:09.184Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/88/550d41e81e6d43335603a960cd9c75c1d88f9cf01bc9d4ee8e86290aba7d/pint-0.25.2-py3-none-any.whl", hash = "sha256:ca35ab1d8eeeb6f7d9942b3cb5f34ca42b61cdd5fb3eae79531553dcca04dda7", size = 306762, upload-time = "2025-11-06T22:08:07.745Z" },
+]
+
+[[package]]
+name = "pint-pandas"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pandas" },
+    { name = "pint", version = "0.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pint", version = "0.25.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3e/d4/1623f45236859c88d196c5f7307b675f59e17a7a7d7a70114dba4a422af2/pint_pandas-0.7.1.tar.gz", hash = "sha256:f1106215a682593f535a89696688fec88a6fac3b32ffa9fe94c307e252bcb588", size = 60693, upload-time = "2025-01-06T22:30:51.499Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/97/19/5af93cae70c2e42f3ac568906f8f3909174450bdbf4d70ec420e1daef816/Pint_Pandas-0.7.1-py3-none-any.whl", hash = "sha256:785312752eba35cbc55f4fa788c9f3d315839157d94254c5c79b91c5690ba11e", size = 28675, upload-time = "2025-01-06T22:30:49.974Z" },
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.3.8"
 source = { registry = "https://pypi.org/simple" }
@@ -3025,10 +3123,13 @@ wheels = [
 name = "pygef"
 version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.11'",
+]
 dependencies = [
-    { name = "gef-file-to-map" },
-    { name = "lxml" },
-    { name = "polars" },
+    { name = "gef-file-to-map", version = "0.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "lxml", marker = "python_full_version < '3.11'" },
+    { name = "polars", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/61/cd/ebe7eed1dbe55f9fd4a04fd5780ed7e1da2dae81815771a0f4d2cc523976/pygef-0.13.0.tar.gz", hash = "sha256:528c661c753ea5e0033a5d228d3441715a1fda78577f71835342bbd7a1e55d91", size = 35242, upload-time = "2025-10-13T06:45:58.343Z" }
 wheels = [
@@ -3037,7 +3138,31 @@ wheels = [
 
 [package.optional-dependencies]
 plot = [
-    { name = "matplotlib" },
+    { name = "matplotlib", marker = "python_full_version < '3.11'" },
+]
+
+[[package]]
+name = "pygef"
+version = "0.14.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12' and python_full_version < '3.14'",
+    "python_full_version == '3.11.*'",
+]
+dependencies = [
+    { name = "gef-file-to-map", version = "1.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "lxml", marker = "python_full_version >= '3.11'" },
+    { name = "polars", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/4e/428b54b15e72537ea0ed5fabf75443bc916c0fda858d185480cd87747bfa/pygef-0.14.0.tar.gz", hash = "sha256:60d1801b3f2abc08cb5fcd383bf0db97314b64141f33e528026d776e74626a90", size = 36762, upload-time = "2025-11-14T02:53:49.449Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/0b/558e52ec7f59ae4edc002a98d94759a762c650caa73ffed2957a797b4ffb/pygef-0.14.0-py3-none-any.whl", hash = "sha256:182aec3f4b91f735a54d103e467e7c6dc9b72d60fb68ea17cd7152f841702d7b", size = 37050, upload-time = "2025-11-14T02:53:48.391Z" },
+]
+
+[package.optional-dependencies]
+plot = [
+    { name = "matplotlib", marker = "python_full_version >= '3.11'" },
 ]
 
 [[package]]

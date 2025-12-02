@@ -15,8 +15,11 @@ from evo.data_converters.common.objects.downhole_collection import (
     HoleCollars,
     MeasurementTableFactory,
 )
+from evo.data_converters.gef.converter.gef_spec import MEASUREMENT_UNITS
+
 from pygef.cpt import CPTData
 import pandas as pd
+import pint
 import polars as pl
 import typing
 import evo.logging
@@ -24,6 +27,7 @@ import evo.logging
 from collections import defaultdict
 
 logger = evo.logging.getLogger("data_converters")
+gef_unit_registry = pint.get_application_registry()
 
 
 class DownholeCollectionBuilder:
@@ -54,7 +58,7 @@ class DownholeCollectionBuilder:
         self.epsg_code: int | str | None = None
         self.collar_rows: list[dict[str, typing.Any]] = []
         self.collection_name: str | None = None
-        self.measurement_dfs: list[pl.DataFrame] = []
+        self.measurement_dfs: list[pd.DataFrame] = []
         self.nan_values_by_attribute: dict[str, list[typing.Any]] = defaultdict(list)
 
     def process_cpt_file(self, hole_index: int, hole_id: str, cpt_data: CPTData) -> None:
@@ -71,6 +75,8 @@ class DownholeCollectionBuilder:
         self.collar_rows.append(collar_row)
 
         measurements = self._prepare_measurements(hole_index, cpt_data)
+        measurements = self._apply_measurement_units(measurements, cpt_data)
+
         self.measurement_dfs.append(measurements)
 
         self._track_nan_values(cpt_data)
@@ -227,19 +233,38 @@ class DownholeCollectionBuilder:
         collar_attributes = self._get_collar_attributes(cpt_data)
         return collar_data | collar_attributes
 
-    def _prepare_measurements(self, hole_index: int, cpt_data: CPTData) -> pl.DataFrame:
+    def _prepare_measurements(self, hole_index: int, cpt_data: CPTData) -> pd.DataFrame:
         """Prepare measurements DataFrame with hole_index as first column.
 
         :param hole_index: Sequential index for this hole
         :param cpt_data: CPT data object
 
-        :return: Polars DataFrame with measurements
+        :return: Pandas DataFrame with measurements
         """
         measurements = cpt_data.data.with_columns(pl.lit(hole_index).cast(pl.Int32).alias("hole_index"))
 
-        # Reorder columns to put hole_index first
+        # Reorder columns to put hole_index first, convert to Pandas
         other_cols = [col for col in cpt_data.data.columns if col != "hole_index"]
-        return measurements.select(["hole_index"] + other_cols)
+        measurements = measurements.select(["hole_index"] + other_cols).to_pandas()
+
+        return measurements
+
+    def _apply_measurement_units(self, measurements: pd.DataFrame, cpt_data: CPTData) -> pd.DataFrame:
+        """Apply pint units to the measurements DataFrame based on looking up the expected
+        units for the column name in the MEASUREMENT_UNITS dictionary. If the column name
+        maps to an empty string then the column is treated as dimensionless, and is not
+        modified here.
+
+        :param measurements: The measurements DataFrame to apply units to
+        :param cpt_data: CPT data object
+
+        :return: DataFrame with applied pint units
+        """
+        for col in cpt_data.data.columns:
+            if col in MEASUREMENT_UNITS and MEASUREMENT_UNITS[col] != "":
+                measurements[col] = measurements[col].astype(f"pint[{MEASUREMENT_UNITS[col]}]")
+
+        return measurements
 
     def _track_nan_values(self, cpt_data: CPTData) -> None:
         """Track NaN values by attribute name.
@@ -277,8 +302,7 @@ class DownholeCollectionBuilder:
         :return: Pandas DataFrame with all measurements
         """
         if self.measurement_dfs:
-            measurements_pl = pl.concat(items=self.measurement_dfs, how="vertical")
-            measurements = measurements_pl.to_pandas()
+            measurements = pd.concat(self.measurement_dfs, axis=0, ignore_index=True)
             logger.info(f"Creating collection with {len(measurements)} total measurements")
             return measurements
         else:
