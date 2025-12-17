@@ -12,12 +12,13 @@
 import sys
 import typing
 
+import numpy as np
 import pandas as pd
 
 from ..base_properties import BaseSpatialDataProperties
 from .column_mapping import ColumnMapping
 from .hole_collars import HoleCollars
-from .tables import MeasurementTableAdapter, MeasurementTableFactory
+from .tables import DistanceTable, MeasurementTableAdapter, MeasurementTableFactory
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -125,6 +126,100 @@ class DownholeCollection(BaseSpatialDataProperties):
                 results.append(m)
         return results
 
+    def _compute_hole_bounding_box(
+        self,
+        collar_x: float,
+        collar_y: float,
+        collar_z: float,
+        depths: pd.Series,
+        dips: pd.Series,
+        azimuths: pd.Series,
+    ):
+        """
+        Compute 3D bounding box for a deviated hole given collar XYZ and
+        depth / dip / azimuth data.
+
+        Conventions
+        -----------
+        - depths: measured depth along the hole (m), positive downward.
+        - dips: inclination FROM VERTICAL (degrees).
+            0° = vertical down, 90° = horizontal.
+        - azimuths: degrees clockwise from North.
+        - Coordinates: X = Easting, Y = Northing, Z = elevation (up).
+        """
+
+        df = pd.DataFrame(
+            {
+                "depth": depths,
+                "dip": dips,
+                "azimuth": azimuths,
+            }
+        ).dropna(subset=["depth", "dip", "azimuth"])
+
+        # Sort by depth just in case
+        df = df.sort_values("depth").reset_index(drop=True)
+
+        depth_vals = df["depth"].astype(float).to_numpy()
+        dip_rad = np.deg2rad(df["dip"].astype(float).to_numpy())
+        az_rad = np.deg2rad(df["azimuth"].astype(float).to_numpy())
+
+        # Step lengths along the hole (assume collar at MD = 0,
+        # first survey value applies from 0 -> depth[0])
+        step = np.diff(depth_vals, prepend=0.0)
+
+        # Dip from vertical:
+        #   vertical (down) component = step * cos(dip)
+        #   horizontal component      = step * sin(dip)
+        horiz = step * np.sin(dip_rad)
+        dz_down = step * np.cos(dip_rad)
+
+        # Horizontal into N/E (0° = North, 90° = East)
+        dN = horiz * np.cos(az_rad)
+        dE = horiz * np.sin(az_rad)
+
+        # Convert to XYZ increments (Z up)
+        dX = dE
+        dY = dN
+        dZ = -dz_down
+
+        # Cumulative coordinates from collar
+        x = collar_x + np.cumsum(dX)
+        y = collar_y + np.cumsum(dY)
+        z = collar_z + np.cumsum(dZ)
+
+        # Include collar itself
+        xs = np.concatenate([[collar_x], x])
+        ys = np.concatenate([[collar_y], y])
+        zs = np.concatenate([[collar_z], z])
+
+        return {
+            "xmin": xs.min(),
+            "xmax": xs.max(),
+            "ymin": ys.min(),
+            "ymax": ys.max(),
+            "zmin": zs.min(),
+            "zmax": zs.max(),
+        }
+
+    def _combine_bounding_boxes(self, bboxes: list[dict[str, float]]):
+        """
+        Given a list of bbox dicts like:
+            {"xmin": ..., "xmax": ..., "ymin": ..., "ymax": ..., "zmin": ..., "zmax": ...}
+        return a single bbox of 6 floats that encloses them all.
+        """
+
+        if not bboxes:
+            raise ValueError("bboxes list is empty")
+
+        return [
+            min(b["xmin"] for b in bboxes),
+            max(b["xmax"] for b in bboxes),
+            min(b["ymin"] for b in bboxes),
+            max(b["ymax"] for b in bboxes),
+            min(b["zmin"] for b in bboxes),
+            max(b["zmax"] for b in bboxes),
+        ]
+
     @override
     def get_bounding_box(self) -> list[float]:
         """
@@ -135,11 +230,27 @@ class DownholeCollection(BaseSpatialDataProperties):
 
         :return: List of 6 floats [min_x, max_x, min_y, max_y, min_z, max_z]
         """
-        return [
-            self.collars.df["x"].min(),
-            self.collars.df["x"].max(),
-            self.collars.df["y"].min(),
-            self.collars.df["y"].max(),
-            self.collars.df["z"].min(),
-            self.collars.df["z"].max(),
-        ]
+
+        collars_df = self.collars.df
+        measurement_tables = self.get_measurement_tables(filter=[DistanceTable])
+        bboxes = []
+
+        for mt in measurement_tables:
+            mt._prepare_dataframe()
+            for hole_index, hole_id, x, y, z in zip(
+                collars_df["hole_index"], collars_df["hole_id"], collars_df["x"], collars_df["y"], collars_df["z"]
+            ):
+                depths = mt.get_depth_values(filter_to_hole_index=hole_index)
+                dips = mt.get_dip_values(filter_to_hole_index=hole_index)
+                azimuths = mt.get_azimuth_values(filter_to_hole_index=hole_index)
+                bbox = self._compute_hole_bounding_box(
+                    collar_x=x,
+                    collar_y=y,
+                    collar_z=z,
+                    depths=depths,
+                    dips=dips,
+                    azimuths=azimuths,
+                )
+                bboxes.append(bbox)
+
+        return self._combine_bounding_boxes(bboxes=bboxes) if bboxes else []
